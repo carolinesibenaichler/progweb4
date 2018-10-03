@@ -1,0 +1,135 @@
+{% extends 'twipin/base.html' %}
+
+{% block content %}
+        <div class="row justify-content-center" >
+            <div class="col-md-6">
+               <div class="row">
+                  <div class="col">
+                     <div class="card bg-light">
+                        <div class="card-body">
+                           <h4 class="card-title"> John Doe </h4>
+                           <textarea id="mensagem" class="form-control w100 mb-2" rows="3" placeholder="O que você quer twipar?" maxlength="140" autofocus></textarea> 
+                           <span id="caracteres" class="badge badge-pill badge-secondary"> 140 caracteres restando </span>
+                           <button id="btnEnviar" class="btn btn-primary float-right" disabled>Twipar</button>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               <div class="row mt-4" >
+                  <div class="col">
+                       <h6 id="twipCounter">  </h6>
+                  </div>
+               </div>
+
+               <div id="feed">
+               </div>
+
+               <div id="twipTemplate" class="d-none">
+                  <div class="row mb-2 twip"  >
+                     <div class="col">
+                        <div class="card">
+                           <div class="card-body">
+                              <h6 class="card-title"> John Doe <span class="font-weight-light text-muted">@johndoereal</span></h6>
+                              <p>O mundo é grande e cabe nesta janela sobre o mar. O mar é grande e cabe na cama e no colchão de amar. O amor é grande e cabe no breve espaço de beijar.</p> 
+                              <a class="curtir mr-2" href="#"><i class="far fa-heart"></i> <span>0</span></a>
+                              <a class="excluir mr-2 float-right" href="#"><i class="far fa-trash-alt"> </i></a>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+            </div>
+        </div>
+
+    <script>
+
+       var todosTwips = {
+           
+            lista: [
+                {usuario: "joaocabrito", nome: "João Paulo", mensagem: "Bom dia!"},
+                {usuario: "jucabala"   , nome: "Juca Bala" , mensagem: "Tiroteio na 21!"},
+                {usuario: "monica33"   , nome: "Mônica"    , mensagem: "Boa noite!"}
+            ] 
+
+       };
+ 
+       $(document).ready(function() {
+            
+            atualizarContadorTwips();
+
+            //Atualização dos caracteres restantes e botão
+            $("#mensagem").on('input',function() {
+                 var t = $(this).val();
+                 var max = $(this).attr("maxlength");
+                 var c = max - t.length;
+                 $("#caracteres").text(c + " caracteres restando"); 
+                 if (c == max) {
+                     $("#btnEnviar").prop("disabled", true); 
+                 } else {
+                     $("#btnEnviar").prop("disabled", false); 
+                 }
+            });
+
+            //Envio de mensagem
+            $("#btnEnviar").on('click', function() {
+                 var t = $("#mensagem").val();
+                 $("#mensagem").val("").trigger("input").focus();
+                 //alert("Twip: " + t); //TODO Substitua esse alert pelo envio de mensagem
+                 var newTwip = $("#twipTemplate > div").clone(true).hide().prependTo("#feed");
+                 $("#feed > div p").first().text(t);
+                 newTwip.fadeIn("slow");
+                 atualizarContadorTwips();
+                 return false;
+            });
+
+            //Eventos do twipTemplate
+            $("#twipTemplate a.curtir").on('click', function() {
+                 
+                 var c = $(this).find("span").text();
+                 //TODO Fazer chamada ajax aqui pra atualizar curtidas
+                 c++;
+                 $(this).find("span").text(c);
+                 return false;
+
+            });
+
+            $("#twipTemplate a.excluir").on('click', function() {
+                 //TODO Fazer chamada ajax aqui para remover
+                 $(this).closest("div.twip").remove();
+                 atualizarTwips();
+                 return false;
+
+            });
+
+            //TODO Fazer uma chamada para carregar todos os twips aqui
+            $.getJSON( "/json/exemplo", function( data ) {
+                  
+                 alert(data.nome)
+
+            });
+            
+            
+       });
+
+
+       //Função que atualiza o número de Twips
+       function atualizarContadorTwips() {
+           var c = $("#feed .twip").length
+           var texto = "Nenhum Twip nessa área. Seja o primeiro!";
+           if (c==1) {
+               texto = "1 Twip nessa área"; 
+           }
+           if (c>1) {
+               texto = "Existem " + c + " Twips nessa área"; 
+           }
+           $("#twipCounter").text(texto); 
+       }
+
+   </script>
+
+ 
+{% endblock %}
+
+
