@@ -30,7 +30,7 @@
                      <div class="col">
                         <div class="card">
                            <div class="card-body">
-                              <h6 class="card-title"> John Doe <span class="font-weight-light text-muted">@johndoereal</span></h6>
+                              <h6 class="card-title"> John Doe <span class="username font-weight-light text-muted">@johndoereal</span></h6>
                               <p>O mundo é grande e cabe nesta janela sobre o mar. O mar é grande e cabe na cama e no colchão de amar. O amor é grande e cabe no breve espaço de beijar.</p> 
                               <a class="curtir mr-2" href="#"><i class="far fa-heart"></i> <span>0</span></a>
                               <a class="excluir mr-2 float-right" href="#"><i class="far fa-trash-alt"> </i></a>
@@ -76,10 +76,7 @@
             $("#btnEnviar").on('click', function() {
                  var t = $("#mensagem").val();
                  $("#mensagem").val("").trigger("input").focus();
-                 //alert("Twip: " + t); //TODO Substitua esse alert pelo envio de mensagem
-                 var newTwip = $("#twipTemplate > div").clone(true).hide().prependTo("#feed");
-                 $("#feed > div p").first().text(t);
-                 newTwip.fadeIn("slow");
+                 addTwip(0, t , "fakeUser")
                  atualizarContadorTwips();
                  return false;
             });
@@ -118,9 +115,10 @@
             
             
        });
-
+       // adiciona um twip com os dados dos parametros
        function addTwip(id, texto, usuario){
           var newTwip = $("#twipTemplate > div").clone(true).hide().prependTo("#feed");
+          newTwip.find("span.username").text("@" + usuario);
           $("#feed > div p").first().text(texto);
           newTwip.fadeIn("slow");
        }
