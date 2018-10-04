@@ -109,6 +109,9 @@
                  var count = twips.lista.length
                  for(var c = 0; c< count; c++){
                     alert(twips.lista[c].texto);
+                    addTwip(twips.lista[c].id, twips.lista[c].texto, twips.lista[c].autor)
+
+
                  }
 
 
@@ -116,6 +119,12 @@
             
             
        });
+
+       function addTwip(id, texto, usuario){
+          var newTwip = $("#twipTemplate > div").clone(true).hide().prependTo("#feed");
+          $("#feed > div p").first().text(texto);
+          newTwip.fadeIn("slow");
+       }
 
 
        //Função que atualiza o número de Twips
