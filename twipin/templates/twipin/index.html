@@ -100,14 +100,14 @@
 
             });
 
-            //TODO Fazer uma chamada para carregar todos os twips aqui
-            $.getJSON( "/json/listartwips", function( twips ) {
-                  
+            //Fazer uma chamada para carregar todos os twips aqui
+            $.getJSON( "/api/twips", function( twips ) {                  
                  var count = twips.lista.length
                  for(var c = 0; c< count; c++){
-                    addTwip(twips.lista[c].id, twips.lista[c].texto, twips.lista[c].autor)
-
-
+                    var id = twips.lista[c].id
+                    var texto = twips.lista[c].texto
+                    var usuario = twips.lista[c].autor
+                    addTwip(id,texto,usuario)
                  }
 
 

@@ -3,6 +3,5 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('json/listartwips', views.json_listar_twips, name= 'json_listar_twips'),
-    path('json/exemplo', views.json_exemplo, name='json_exemplo'),  
+    path('api/twips', views.api_twips, name= 'api_twips')
 ]
