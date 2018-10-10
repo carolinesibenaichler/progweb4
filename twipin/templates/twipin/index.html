@@ -75,20 +75,22 @@
             //Envio de mensagem
             $("#btnEnviar").on('click', function() {
                  var t = $("#mensagem").val();
-                 $("#mensagem").val("").trigger("input").focus();
-                 addTwip(0, t , "fakeUser")
-                 atualizarContadorTwips();
+                 $("#mensagem").val("").trigger("input").focus();               
+
                  $.ajax({
                    method: "POST",
                    url: "/api/twips",
                    data: {texto: t}
-
-                   }).done(function() {
-                   $( this ).addClass( "done" );
+                   }).done(function(data) {
+                     if(data["mensagem"] == "ok"){
+                       addTwip(0, t , "fakeUser")
+                       atualizarContadorTwips();
+                       alert("resposta: " + data["mensagem"]);
+                     }else{
+                        alert("Erro: " + data["mensagem"]);
+                     }
+                     
                  });
-
-
-
 
                  return false;
             });
