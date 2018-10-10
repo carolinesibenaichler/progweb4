@@ -16,4 +16,7 @@ def api_twips(request):
       temp = {"id": t.id, "texto": t.texto, "autor":t.autor.username}
       jt ["lista"].append(temp)
     return JsonResponse(jt)
-    
+  elif request.method == "POST":
+    #TODO salvar no baco
+    jt = { "resposta": "ok"}
+    return JsonResponse(jt)

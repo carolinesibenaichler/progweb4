@@ -78,6 +78,18 @@
                  $("#mensagem").val("").trigger("input").focus();
                  addTwip(0, t , "fakeUser")
                  atualizarContadorTwips();
+                 $.ajax({
+                   method: "POST",
+                   url: "/api/twips",
+                   data: {texto: t}
+
+                   }).done(function() {
+                   $( this ).addClass( "done" );
+                 });
+
+
+
+
                  return false;
             });
 
@@ -112,6 +124,9 @@
 
 
             });
+
+
+
             
             
        });
