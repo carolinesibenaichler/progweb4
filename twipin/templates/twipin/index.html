@@ -7,8 +7,8 @@
                   <div class="col">
                      <div class="card bg-light">
                         <div class="card-body">
-                           <h4 class="card-title"> John Doe </h4>
-                           <textarea id="mensagem" class="form-control w100 mb-2" rows="3" placeholder="O que você quer twipar?" maxlength="140" autofocus></textarea> 
+                           <h4 class="card-title"> {{ user.first_name }} <a href="sair" title="Sair" > <i class="fas fa-sign-out-alt"></i> </a> </h4>
+                                                      <textarea id="mensagem" class="form-control w100 mb-2" rows="3" placeholder="O que você quer twipar?" maxlength="140" autofocus></textarea> 
                            <span id="caracteres" class="badge badge-pill badge-secondary"> 140 caracteres restando </span>
                            <button id="btnEnviar" class="btn btn-primary float-right" disabled>Twipar</button>
                         </div>
@@ -22,17 +22,20 @@
                   </div>
                </div>
 
+               <div id="mapa" class="mb-2" style="height: 200px">
+               </div>
+
                <div id="feed">
                </div>
 
                <div id="twipTemplate" class="d-none">
-                  <div class="row mb-2 twip" twipId="-1"  >
+                  <div class="row mb-2 twip" twipId="-1" >
                      <div class="col">
                         <div class="card">
                            <div class="card-body">
-                              <h6 class="card-title"> John Doe <span class="username font-weight-light text-muted">@johndoereal</span></h6>
+                              <h6 class="card-title"><span class="nome"> John Doe </span> <span class="username font-weight-light text-muted">@johndoereal</span></h6>
                               <p class="texto">O mundo é grande e cabe nesta janela sobre o mar. O mar é grande e cabe na cama e no colchão de amar. O amor é grande e cabe no breve espaço de beijar.</p> 
-                              <a class="curtir mr-2" href="#"><i class="far fa-heart"></i> <span class="curtidas">0</span></a>
+                              <a class="curtir mr-2" href="#"><i class="far fa-heart"></i> <span>0</span></a>
                               <a class="excluir mr-2 float-right" href="#"><i class="far fa-trash-alt"> </i></a>
                            </div>
                         </div>
@@ -44,18 +47,12 @@
         </div>
 
     <script>
-
-       var todosTwips = {
-           
-            lista: [
-                {usuario: "joaocabrito", nome: "João Paulo", mensagem: "Bom dia!"},
-                {usuario: "jucabala"   , nome: "Juca Bala" , mensagem: "Tiroteio na 21!"},
-                {usuario: "monica33"   , nome: "Mônica"    , mensagem: "Boa noite!"}
-            ] 
-
-       };
- 
+      var mapa;
+      var marcadores = {};
+       var posicao = {lat:  -27.367611913727327, lng: -53.395021770432265};
        $(document).ready(function() {
+       
+            configurarMapa();
             
             atualizarContadorTwips();
 
@@ -75,20 +72,23 @@
             //Envio de mensagem
             $("#btnEnviar").on('click', function() {
                  var t = $("#mensagem").val();
-                 $("#mensagem").val("").trigger("input").focus();               
+                 $("#mensagem").val("").trigger("input").focus();
 
                  $.ajax({
-                   method: "POST",
-                   url: "/api/twips",
-                   data: {texto: t}
-                   }).done(function(data) {
-                     if(data["mensagem"] == "ok"){
-                       addTwip(0, t , "fakeUser")
-                       atualizarContadorTwips();
-                       alert("resposta: " + data["mensagem"]);
-                     }else{
-                        alert("Erro: " + data["mensagem"]);
-                     }                     
+                     method: "POST",
+                     url: "/api/twips",
+                     data: {texto: t, lat:posicao.lat , lng: posicao.lng }
+                 })
+                 .done(function(data) {
+                    if (data["mensagem"] == "ok") {
+                       id = data["id"];
+                       usuario = data["usuario"];
+                       nome = data["nome"];
+                       addTwip(id, t, nome , usuario,0,false,posicao.lat, posicao.lng);
+                       atualizarContadorTwips(); 
+                    } else {
+                       alert("Erro: "+data["mensagem"]);
+                    }
                  });
 
                  return false;
@@ -96,84 +96,117 @@
 
             //Eventos do twipTemplate
             $("#twipTemplate a.curtir").on('click', function() {
-                 id = $(this).closest("div.twip").attr("twipId")
-                 twip = $(this)
-                 if(twip.hasClass("curtiu")){
-                    $.ajax({
-                       method: "DELETE",
-                       url: "/api/twips/" + id + "/coracao" 
-                     })
-                     .done(function(data) {
-                        twip.find("span.curtidas").text(data.curtidas);
-                        twip.removeClass("curtiu");
-                     });
+
+                 link = $(this);
+                 id = $(link).closest("div.twip").attr("twipId");
+                 curtiu = $(link).hasClass("curtiu"); 
+                 
+
+                 operacao = "POST"
+                 if (curtiu) {
+                    operacao = "DELETE";
                  }
 
-                 else{
-                     $.ajax({
-                       method: "POST",
-                       url: "/api/twips/" + id + "/coracao" 
-                     })
-                     .done(function(data) {
-                        twip.find("span.curtidas").text(data.curtidas);
-                        //alert("cheguei aqui")
-                        twip.addClass("curtiu");
-                     });
-
-                 }
-
+                 $.ajax({
+                     method: operacao,
+                     url: "/api/twips/" + id  +  "/coracao"
+                 })
+                 .done(function(data) {
+                    if (data["mensagem"] == "ok") {
+                       $(link).fadeOut("fast", function() {
+                          $(link).find("span").text(data["curtidas"]);
+                          $(link).toggleClass("curtiu");
+                          $(link).find("svg").toggleClass("far").toggleClass("fas");
+                          $(link).fadeIn();
+                       });
+                    } else {
+                       alert("Erro: "+data["mensagem"]);
+                    }
+                 });
                  return false;
 
             });
 
             $("#twipTemplate a.excluir").on('click', function() {
-                 //TODO Fazer chamada ajax aqui para remover
-                 id = $(this).closest("div.twip").attr("twipId")
+                 id = $(this).closest("div.twip").attr("twipId");
                  twip = $(this)
+
                  $.ajax({
-                   method: "DELETE",
-                   url: "/api/twips/" + id 
+                     method: "DELETE",
+                     url: "/api/twips/" + id
                  })
                  .done(function(data) {
-                    $(twip).closest("div.twip").remove();
-                    atualizarContadorTwips();
-                     
+                     $(twip).closest("div.twip").slideUp("normal", function() {
+                        $(twip).closest("div.twip").remove();
+                        marcadores[id].setMap(null);
+                        atualizarContadorTwips();
+                     });
                  });
-                 
                  return false;
 
             });
 
             //Fazer uma chamada para carregar todos os twips aqui
-            $.getJSON( "/api/twips", function( twips ) {                  
+            $.getJSON( "/api/twips", function( twips ) {
+                  
                  var count = twips.lista.length
-                 for(var c = 0; c< count; c++){
-                    var id = twips.lista[c].id
-                    var texto = twips.lista[c].texto
-                    var usuario = twips.lista[c].autor
-                    var curtidas = twips.lista[c].curtidas
-                    var curtiu = twips.lista[c].curtiu
-                    addTwip(id,texto,usuario, curtidas, curtiu)
+                 for (var c = 0; c < count; c++) {
+                     var id = twips.lista[c].id
+                     var texto = twips.lista[c].texto
+                     var usuario = twips.lista[c].autor
+                     var nome = twips.lista[c].nome
+                     var curtidas = twips.lista[c].curtidas
+                     var curtiu = twips.lista[c].curtiu
+                     var lat = twips.lista[c].lat
+                     var lng = twips.lista[c].lng
+                     addTwip(id,texto,nome,usuario,curtidas,curtiu,lat,lng)
                  }
-
+                 atualizarContadorTwips();
 
             });
-
-
-
             
             
        });
-       // adiciona um twip com os dados dos parametros
-       function addTwip(id, texto, usuario, curtidas, curtiu){
-          var newTwip = $("#twipTemplate > div").clone(true).hide().prependTo("#feed");
-          newTwip.attr("twipId",id);
-          newTwip.find("span.username").text("@" + usuario);
-          newTwip.find("p.texto").text(texto);
-          newTwip.find("span.curtidas").text(curtidas);
 
-          //$("#feed > div p").first().text(texto);
-          newTwip.fadeIn("slow");
+       //Adiciona um twip com os dados dos parâmetros
+       function addTwip(id, texto, nome, usuario, curtidas,curtiu,lat,lng) {
+           var newTwip = $("#twipTemplate > div").clone(true).hide().prependTo("#feed");
+           newTwip.attr("twipId", id); 
+           newTwip.find("span.username").text("@" + usuario);
+           newTwip.find(".nome").text(nome);
+           newTwip.find("p.texto").text(texto);
+           newTwip.find("a.curtir > span").text(curtidas);
+           newTwip.find("a.curtir > svg").removeClass("fas far");
+           if (curtiu==true) {
+               newTwip.find("a.curtir").addClass("curtiu");
+               newTwip.find("a.curtir > svg").addClass("fas");
+           } else {
+               newTwip.find("a.curtir").removeClass("curtiu");
+               newTwip.find("a.curtir > svg").addClass("far");
+           }
+           if (usuario == '{{user.username}}') {
+               newTwip.find("a.excluir").removeClass("d-none");
+           } else {
+               newTwip.find("a.excluir").addClass("d-none");
+           }
+
+
+           posi = {"lat": lat, "lng":lng}
+           var marcador = new google.maps.Marker({
+                position: posi,                 //Posição do marcador 
+                map: mapa,                    //Variável do mapa
+                title: texto //Texto do marcador
+            });
+           marcadores[id] = marcador;
+
+
+           //Adiciona uma função associada ao clique no marcador 
+           marcador.addListener('click', function() {
+             var pos = newTwip.offset().top;
+             $(window).scrollTop(pos); 
+             newTwip.effect("shake");
+           });
+           newTwip.fadeIn();
        }
 
 
@@ -190,8 +223,37 @@
            $("#twipCounter").text(texto); 
        }
 
+       //Função para inicializar o mapa
+       function configurarMapa() {
+            //Localização de Frederico
+            var fw = {lat: -27.3667, lng: -53.4};
+
+            //Cria o mapa centralizado em fw
+            mapa = new google.maps.Map(document.getElementById('mapa'), {zoom: 15, center: fw});
+
+            //Cria um marcador na posição indicada por fw
+           /* var marcador = new google.maps.Marker({
+                position: fw,                 //Posição do marcador 
+                map: mapa,                    //Variável do mapa
+                title: "Frederico Westphalen" //Texto do marcador
+            }); 
+
+            //Adiciona uma função associada ao clique no marcador 
+            marcador.addListener('click', function() {
+                alert("Você clicou em Frederico Westphalen!");
+            });
+            */
+            //Associa uma função ao evento clique do mapa 
+            google.maps.event.addListener(mapa, 'click', function(event) {
+               var ponto = event.latLng;
+               posicao={"lat": ponto.lat(), "lng":ponto.lng()}
+            });
+
+       }
+
    </script>
 
+   <script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADLsL46CQaEu2smB3EMpEV1eEbInd0ASs"> </script>
  
 {% endblock %}
 

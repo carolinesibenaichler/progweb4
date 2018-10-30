@@ -1,3 +1,9 @@
-a.curtiu{
-	color: red;
+
+.curtir:hover, .curtir:visited, .curtir:link, .curtir:active {
+   text-decoration: none;
+   color: gray;
+}
+
+.curtiu:hover, .curtiu:visited, .curtiu:link, .curtiu:active {
+    color: #dc3979;    
 }
