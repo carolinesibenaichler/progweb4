@@ -11,6 +11,7 @@
                                                       <textarea id="mensagem" class="form-control w100 mb-2" rows="3" placeholder="O que você quer twipar?" maxlength="140" autofocus></textarea> 
                            <span id="caracteres" class="badge badge-pill badge-secondary"> 140 caracteres restando </span>
                            <button id="btnEnviar" class="btn btn-primary float-right" disabled>Twipar</button>
+                           <button id="btnQrcode" class="btn btn-primary float-right d-none" >QR-code</button>
                         </div>
                      </div>
                   </div>
@@ -24,6 +25,8 @@
 
                <div id="mapa" class="mb-2" style="height: 200px">
                </div>
+                 
+               <video id="preview"></video>
 
                <div id="feed">
                </div>
@@ -48,10 +51,11 @@
 
     <script>
       var mapa;
+      var scanner;
       var marcadores = {};
        var posicao = {lat:  -27.367611913727327, lng: -53.395021770432265};
        $(document).ready(function() {
-       
+            configurarQRCode();
             configurarMapa();
             
             atualizarContadorTwips();
@@ -67,6 +71,20 @@
                  } else {
                      $("#btnEnviar").prop("disabled", false); 
                  }
+            });
+            
+            $("#btnQrcode").on('click', function() {
+
+               Instascan.Camera.getCameras().then(function (cameras) {
+                 if (cameras.length > 0) { 
+                    scanner.start(cameras[0]);//chamar o click do botão  qr-code
+                  
+                 } else {
+                   console.error('Nenhuma camera encontrada.');
+                }
+              }).catch(function (e) {
+                console.error(e);
+              })
             });
 
             //Envio de mensagem
@@ -248,6 +266,27 @@
                var ponto = event.latLng;
                posicao={"lat": ponto.lat(), "lng":ponto.lng()}
             });
+                    }
+
+            function configurarQRCode(){
+              scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
+              scanner.addListener('scan', function (texto) {
+                  alert(texto);
+                  //preencher o textarea com o twip
+                  scanner.stop();
+              });
+              Instascan.Camera.getCameras().then(function (cameras) {
+                 if (cameras.length > 0) {
+                  //scanner.start(cameras[0]);//chamar o click do botão  qr-code
+                   $("#btnQrcode").removeClass("d-none");
+
+                 } else {
+                   console.error('Nenhuma camera encontrada.');
+                }
+              }).catch(function (e) {
+                console.error(e);
+              });
+
 
        }
 
