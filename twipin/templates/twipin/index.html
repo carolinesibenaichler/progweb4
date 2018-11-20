@@ -165,7 +165,7 @@
             });
 
             //Fazer uma chamada para carregar todos os twips aqui
-            $.getJSON( "/api/twips", function( twips ) {
+            $.getJSON( "/api/twips", { hash: "{{hash}}"}, function( twips ) {
                   
                  var count = twips.lista.length
                  for (var c = 0; c < count; c++) {
@@ -189,10 +189,27 @@
        //Adiciona um twip com os dados dos parâmetros
        function addTwip(id, texto, nome, usuario, curtidas,curtiu,lat,lng) {
            var newTwip = $("#twipTemplate > div").clone(true).hide().prependTo("#feed");
+
+           hastags=[]
+           var str = texto.split(" ");
+           for (x in str) {
+              if(str[x][0] == "#"){
+                hastags.push(str[x]);
+               // alert(hastags[0])
+              }
+
+           }
+
+           for (i in hastags) {
+            var hash = hastags[i]
+            hash = hash.substring(1, hash.length)
+            texto = texto.replace(hastags[i], "<a href= '/busca/"+ hash + "' >"+ hastags[i] +"</a>" )
+           }
+           
            newTwip.attr("twipId", id); 
            newTwip.find("span.username").text("@" + usuario);
            newTwip.find(".nome").text(nome);
-           newTwip.find("p.texto").text(texto);
+           newTwip.find("p.texto").html(texto);                     
            newTwip.find("a.curtir > span").text(curtidas);
            newTwip.find("a.curtir > svg").removeClass("fas far");
            if (curtiu==true) {
@@ -273,6 +290,12 @@
               scanner.addListener('scan', function (texto) {
                   alert(texto);
                   //preencher o textarea com o twip
+                  $("#mensagem").text(texto)
+                  var str = texto;
+                  if(str.match(/#agora/)){
+                    $("#btnEnviar").click();
+                  }
+
                   scanner.stop();
               });
               Instascan.Camera.getCameras().then(function (cameras) {

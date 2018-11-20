@@ -13,6 +13,13 @@ def index(request):
    contexto = {} 
    return render(request, 'twipin/index.html', contexto)
 
+def busca(request, hashtag):
+   if not request.user.is_authenticated: 
+      return HttpResponseRedirect('entrar') 
+
+   contexto = {"hash" : hashtag} 
+   return render(request, 'twipin/index.html', contexto)
+
 
 def entrar(request):
    contexto = {} 
@@ -74,12 +81,22 @@ def api_twips(request):
 
       jt = {"lista":[]} 
 
-      for t in twips:
-         curtiu = t.curtida_set.filter(autor_id = u.id).count() > 0
-         temp = {"id": t.id, "texto": t.texto, "nome":t.autor.first_name, "autor": t.autor.username, "curtidas": t.curtida_set.count(), "curtiu": curtiu, "lat":t.lat, "lng": t.lng}
-         jt["lista"].append(temp)   
+      hash = request.GET["hash"]
+      if(not hash == ""):
+        for t in twips:
+          if(t.texto.find(hash) > -1):
+            curtiu = t.curtida_set.filter(autor_id = u.id).count() > 0
+            temp = {"id": t.id, "texto": t.texto, "nome":t.autor.first_name, "autor": t.autor.username, "curtidas": t.curtida_set.count(), "curtiu": curtiu, "lat":t.lat, "lng": t.lng}
+            jt["lista"].append(temp) 
+
+      else:
+        for t in twips:
+           curtiu = t.curtida_set.filter(autor_id = u.id).count() > 0
+           temp = {"id": t.id, "texto": t.texto, "nome":t.autor.first_name, "autor": t.autor.username, "curtidas": t.curtida_set.count(), "curtiu": curtiu, "lat":t.lat, "lng": t.lng}
+           jt["lista"].append(temp)   
        
       return JsonResponse(jt)
+
    elif request.method == "POST":
 
       #Salva no banco
