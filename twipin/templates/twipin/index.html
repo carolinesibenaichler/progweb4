@@ -25,6 +25,9 @@
 
                <div id="mapa" class="mb-2" style="height: 200px">
                </div>
+               <div class="rota">
+                 <button id="rota" class="btn btn-primary float-right rota">Criar Rota</button>
+               </div>
                  
                <video id="preview"></video>
 
@@ -52,8 +55,11 @@
     <script>
       var mapa;
       var scanner;
+      var directionsService;
+      var directionsDisplay;
       var marcadores = {};
-       var posicao = {lat:  -27.367611913727327, lng: -53.395021770432265};
+      var posicao = {lat:  -27.367611913727327, lng: -53.395021770432265};
+      var ids = [];
        $(document).ready(function() {
             configurarQRCode();
             configurarMapa();
@@ -182,6 +188,10 @@
                  atualizarContadorTwips();
 
             });
+
+          $("#rota").on('click', function() {
+             calculateAndDisplayRoute(directionsService, directionsDisplay);                 
+            });
             
             
        });
@@ -233,6 +243,7 @@
                 title: texto //Texto do marcador
             });
            marcadores[id] = marcador;
+           ids.push(id)
 
 
            //Adiciona uma função associada ao clique no marcador 
@@ -264,8 +275,13 @@
             var fw = {lat: -27.3667, lng: -53.4};
 
             //Cria o mapa centralizado em fw
+            directionsService = new google.maps.DirectionsService;
+            directionsDisplay = new google.maps.DirectionsRenderer;
             mapa = new google.maps.Map(document.getElementById('mapa'), {zoom: 15, center: fw});
+            directionsDisplay.setMap(mapa);
 
+            //document.getElementById('submit').addEventListener('click', function() {
+            //calculateAndDisplayRoute(directionsService, directionsDisplay);});
             //Cria um marcador na posição indicada por fw
            /* var marcador = new google.maps.Marker({
                 position: fw,                 //Posição do marcador 
@@ -283,7 +299,54 @@
                var ponto = event.latLng;
                posicao={"lat": ponto.lat(), "lng":ponto.lng()}
             });
-                    }
+      }
+
+
+       function calculateAndDisplayRoute(directionsService, directionsDisplay) {
+            var waypts = [];
+            //var checkboxArray = document.getElementById('waypoints');
+            for (var data in marcadores) {
+                waypts.push({
+                  location: marcadores[data].position,
+                  stopover: true
+                });             
+            } 
+            var inicio = ids[0]
+            var final = ids[ids.length-1]
+                alert(inicio +  " " +final)           
+            directionsService.route({          
+              origin: marcadores[inicio].position,
+              destination: marcadores[final].position,
+              waypoints: waypts,
+              optimizeWaypoints: true,
+              travelMode: 'WALKING'
+
+            }, function(response, status) {
+               var inicio = ids[0]
+               var final = ids[ids.length-1]
+                if (status === 'OK') {
+                    //var x = marcadores.length
+                    directionsDisplay.setDirections(response); directionsService.route({
+                    origin: marcadores[inicio].position,
+                    destination: marcadores[final].position,
+                    waypoints: waypts,
+                    optimizeWaypoints: true,
+                    travelMode: 'WALKING'
+
+                    }, function(response, status) {
+                       if (status === 'OK') {
+                       directionsDisplay.setDirections(response);
+
+                       } else {
+                          window.alert('Directions request failed due to ' + status);
+                       }
+                    });
+                }
+            });
+
+       }        
+            
+           
 
             function configurarQRCode(){
               scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
