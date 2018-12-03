@@ -23,7 +23,7 @@
                   </div>
                </div>
 
-               <div id="mapa" class="mb-2" style="height: 200px">
+               <div id="mapa" class="mb-2" style="height: 400px">
                </div>
                <div class="rota">
                  <button id="rota" class="btn btn-primary float-right rota">Criar Rota</button>
@@ -240,7 +240,7 @@
            var marcador = new google.maps.Marker({
                 position: posi,                 //Posição do marcador 
                 map: mapa,                    //Variável do mapa
-                title: texto //Texto do marcador
+                title: usuario //Texto do marcador
             });
            marcadores[id] = marcador;
            ids.push(id)
@@ -313,8 +313,8 @@
             } 
             var inicio = ids[0]
             var final = ids[ids.length-1]
-                alert(inicio +  " " +final)           
-            directionsService.route({          
+                //alert(inicio +  " " +final)           
+              directionsService.route({          
               origin: marcadores[inicio].position,
               destination: marcadores[final].position,
               waypoints: waypts,
@@ -326,21 +326,7 @@
                var final = ids[ids.length-1]
                 if (status === 'OK') {
                     //var x = marcadores.length
-                    directionsDisplay.setDirections(response); directionsService.route({
-                    origin: marcadores[inicio].position,
-                    destination: marcadores[final].position,
-                    waypoints: waypts,
-                    optimizeWaypoints: true,
-                    travelMode: 'WALKING'
-
-                    }, function(response, status) {
-                       if (status === 'OK') {
-                       directionsDisplay.setDirections(response);
-
-                       } else {
-                          window.alert('Directions request failed due to ' + status);
-                       }
-                    });
+                    directionsDisplay.setDirections(response);                    
                 }
             });
 
@@ -351,7 +337,7 @@
             function configurarQRCode(){
               scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
               scanner.addListener('scan', function (texto) {
-                  alert(texto);
+                  //alert(texto);
                   //preencher o textarea com o twip
                   $("#mensagem").text(texto)
                   var str = texto;
@@ -375,7 +361,8 @@
 
 
        }
-
+//
+//
    </script>
 
    <script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADLsL46CQaEu2smB3EMpEV1eEbInd0ASs"> </script>
